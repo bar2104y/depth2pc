@@ -60,7 +60,7 @@ void Depth2PC::convert(sensor_msgs::msg::Image::SharedPtr image,
 						sensor_msgs::msg::PointCloud2 *pc,
 						sensor_msgs::msg::CameraInfo::SharedPtr info)
 {
-	// Инициализация облака точек
+	// init pointcloud
 	pc->header = image->header;
 	pc->header.frame_id = output_frame_id;
     //RCLCPP_INFO(this->get_logger(), "Image size is %dx%d px", image->width, image->height);
@@ -76,16 +76,13 @@ void Depth2PC::convert(sensor_msgs::msg::Image::SharedPtr image,
 			cx = info->k[2],
 			cy = info->k[5];
 
-
-	//Настройка полей
+	// Setup fields
 	sensor_msgs::PointCloud2Modifier modifier(*pc);
 	modifier.setPointCloud2FieldsByString(2,"xyz","rgb");
 	modifier.resize(pc->height*pc->width);
     pc->height = image->height;
 	pc->width = image->width;
 	pc->row_step = pc->width*32;
-
-
 
 	//iterators
 	sensor_msgs::PointCloud2Iterator<float> out_x(*pc, "x");
@@ -112,15 +109,6 @@ void Depth2PC::convert(sensor_msgs::msg::Image::SharedPtr image,
 		if (std::isfinite(depth) && depth != 0 )
 		{
 			float d = float(depth)*0.001;
-			/*
-			float x_over_z = (cx - n) /  fx,
-					y_over_z = (cy - m) / fy;
-
-			x = d / sqrtf(1+powf(x_over_z, 2) + powf(y_over_z, 2));
-			y = x_over_z * x;
-			z = y_over_z * x;
-			*/
-
 			
 			y = -(n-cx)*d/fx;
 			z = -(m-cy)*d/fy;
